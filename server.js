@@ -6,9 +6,14 @@ require('dotenv').config();
 const port = process.env.PORT;
 const MONGO_URI = process.env.MONGO_URI
 
+// routes
+const authRoutes = require('./routes/authRoutes')
+const coupleRoutes = require('./routes/coupleRoutes')
 
 // Middleware 
 app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 
 // MongoDB connection
@@ -16,7 +21,11 @@ mongoose.connect(MONGO_URI )
   .then(()=> console.log('MongoDB connected'))
   .catch(err => console.log('Mongo error', err));
 
-// Routes
+// initialize routes
+app.use('/api/auth', authRoutes);
+app.use('/api/couple', coupleRoutes);
+
+
 
 
 app.listen(port, () => {

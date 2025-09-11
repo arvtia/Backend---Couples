@@ -1,7 +1,7 @@
 
 
 const User = require('../models/User');
-const Couple = require('../models/Couple');
+// const Couple = require('../models/Couple');
 const crypto = require('crypto');
 
 exports.signup = async (req, res) => {
