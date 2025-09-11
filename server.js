@@ -9,6 +9,7 @@ const MONGO_URI = process.env.MONGO_URI
 // routes
 const authRoutes = require('./routes/authRoutes')
 const coupleRoutes = require('./routes/coupleRoutes')
+const activityRoutes = require('./routes/activityRoutes')
 
 // Middleware 
 app.use(cors());
@@ -24,7 +25,7 @@ mongoose.connect(MONGO_URI )
 // initialize routes
 app.use('/api/auth', authRoutes);
 app.use('/api/couple', coupleRoutes);
-
+app.use('/api/activity', activityRoutes);
 
 
 

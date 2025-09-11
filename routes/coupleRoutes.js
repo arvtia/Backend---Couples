@@ -11,4 +11,5 @@ router.post('/link' , createCouple );
 router.get('/:coupleId', getCouple)
 
 
+
 module.exports = router;
