@@ -1,9 +1,8 @@
 
-const Couple = require('../models/Couple');
-const User = require('../models/User');
 const crypto = require('crypto');
 const dayjs = require('dayjs');
 const Activity = require('../models/Activity');
+const Token = require('../models/Tokens')
 
 
 
