@@ -10,6 +10,9 @@ const MONGO_URI = process.env.MONGO_URI
 const authRoutes = require('./routes/authRoutes')
 const coupleRoutes = require('./routes/coupleRoutes')
 const activityRoutes = require('./routes/activityRoutes')
+const tokenRoutes = require('./routes/tokenRoutes')
+const postRoutes = require('./routes/postRoutes')
+const uploadRoutes = require('./routes/uploadRoutes')
 
 // Middleware 
 app.use(cors());
@@ -23,9 +26,16 @@ mongoose.connect(MONGO_URI )
   .catch(err => console.log('Mongo error', err));
 
 // initialize routes
-app.use('/api/auth', authRoutes);
-app.use('/api/couple', coupleRoutes);
-app.use('/api/activity', activityRoutes);
+app.use('/api/auth', authRoutes);   // http://localhost:5000/api/auth/
+app.use('/api/couple', coupleRoutes);   // http://localhost:5000/api/couple/COUPLE_ID
+app.use('/api/activity', activityRoutes);  // http://localhost:5000/api/activity/COUPLE_ID
+app.use('/api/tokens', tokenRoutes);  // http://localhost:5000/api/tokens/COUPLE_ID
+app.use('/api/posts', postRoutes);  // http://localhost:5000/api/posts/ // http://localhost:5000/api/posts?coupleId=COUPLE_ID&visibility=public
+app.use('/api/upload', uploadRoutes);  // http://localhost:5000/api/upload
+
+
+
+
 
 
 
