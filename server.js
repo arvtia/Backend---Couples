@@ -27,7 +27,7 @@ mongoose.connect(MONGO_URI )
 
 
 // initialize routes
-app.get('/', (req, res) => res.send('Backend is running'));
+
 
 app.use('/api/auth', authRoutes);   // http://localhost:5000/api/auth/
 app.use('/api/couple', coupleRoutes);   // http://localhost:5000/api/couple/COUPLE_ID
@@ -45,6 +45,7 @@ app.get('/health', (req, res) => {
     message: 'Backend is healthy 🚀'
   });
 });
+
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
