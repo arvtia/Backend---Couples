@@ -10,6 +10,6 @@ router.use(protect);
 // Create a post
 router.post('/',protect, createPost);
 // Get timeline for a couple, optionally filtered by visibility
-router.get('/:coupleId/:visibility', protect,  getTimeline);
+router.get('/:coupleId/:visibility',  getTimeline);
 
 module.exports = router;
