@@ -39,7 +39,7 @@ app.use('/api/upload', uploadRoutes);  // http://localhost:5000/api/upload
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'ok',
-    uptime: process.uptime(),
+    uptime: process.uptime().toFixed(0) + ' seconds',
     timestamp: new Date(),
     message: 'Backend is healthy'
   });
