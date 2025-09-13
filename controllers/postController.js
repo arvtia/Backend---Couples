@@ -22,6 +22,12 @@ const createPost = async (req, res) => {
       return res.status(500).json({ error: 'Upload failed', details: err.message });
     }
 
+   const isMember = await verifyCoupleMembership(req.userId, coupleId);
+   if (!isMember) return res.status(403).json({ error: 'Access denied' });
+   if (!isMember) {
+   console.warn(`Unauthorized access attempt by user ${req.userId} to couple ${coupleId}`);
+   return res.status(403).json({ error: 'Access denied' });
+   }
     const { coupleId, author, content, visibility } = req.body;
     const mediaURL = req.file?.path || null;
 

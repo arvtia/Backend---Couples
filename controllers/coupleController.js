@@ -1,6 +1,7 @@
 const Couple = require('../models/Couple');
 const User = require('../models/User');
 const crypto = require('crypto');
+const verifyCoupleMembership = require('../utils/verifyCoupleMembership');
 
 const createCouple =  async (req, res) => {
   const { userId, partnerCode } = req.body;
@@ -27,6 +28,10 @@ const createCouple =  async (req, res) => {
 
 const getCouple = async ( req, res)=>{
    const { coupleId } = req.params;
+  
+  // Only allow access if user is a member
+  const isMember = await verifyCoupleMembership(req.userId, coupleId);
+    if (!isMember) return res.status(403).json({ error: 'Access denied' });
    try {
       const couple = await Couple.findById(coupleId).populate('members', 'name email');
       if (!couple) return res.status(404).json({ error: 'Couple not found' });
