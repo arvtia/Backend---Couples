@@ -28,7 +28,6 @@ mongoose.connect(MONGO_URI )
 
 // initialize routes
 
-
 app.use('/api/auth', authRoutes);   // http://localhost:5000/api/auth/
 app.use('/api/couple', coupleRoutes);   // http://localhost:5000/api/couple/COUPLE_ID
 app.use('/api/activity', activityRoutes);  // http://localhost:5000/api/activity/COUPLE_ID
@@ -42,7 +41,7 @@ app.get('/health', (req, res) => {
     status: 'ok',
     uptime: process.uptime(),
     timestamp: new Date(),
-    message: 'Backend is healthy 🚀'
+    message: 'Backend is healthy'
   });
 });
 
