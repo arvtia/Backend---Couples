@@ -2,7 +2,8 @@
 const crypto = require('crypto');
 const dayjs = require('dayjs');
 const Activity = require('../models/Activity');
-const Token = require('../models/Tokens')
+const Token = require('../models/Tokens');
+const verifyCoupleMembership = require('../utils/verifyCoupleMembership');
 
 
 
@@ -12,6 +13,10 @@ const createActivity = async ( req, res) =>{
    const { coupleId , type , metadata , description } = req.body;
    if (!coupleId || !type || !description) return res.status(400).json({message:"coupleId, type and description are required"});
    try {
+
+      const isMember = await verifyCoupleMembership(req.userId, coupleId);
+      if (!isMember) return res.status(403).json({ error: 'Access denied' });
+
       // save activity
       const activity = new Activity({ coupleId, type, metadata, description});
       await activity.save();
@@ -33,7 +38,10 @@ const createActivity = async ( req, res) =>{
 const getActivities = async ( req, res) =>{
    const { coupleId } = req.params; 
    try {
-      const activities = await Activity.find({coupleId}).sort({ createdAt: -1 });
+      const isMember = await verifyCoupleMembership(req.userId, coupleId);
+      if (!isMember) return res.status(403).json({ error: 'Access denied' });
+
+      const activities = await Activity.find({ coupleId }).sort({ createdAt: -1 }).lean();
       res.json({ activities });
    } catch (err) {
       res.status(500).json({ error: 'Failed to retrieve activities', details: err.message });
