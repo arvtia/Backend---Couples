@@ -36,11 +36,15 @@ app.use('/api/tokens', tokenRoutes);  // http://localhost:5000/api/tokens/COUPLE
 app.use('/api/posts', postRoutes);  // http://localhost:5000/api/posts/ // http://localhost:5000/api/posts?coupleId=COUPLE_ID&visibility=public
 app.use('/api/upload', uploadRoutes);  // http://localhost:5000/api/upload
 
-
-
-
-
-
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    uptime: process.uptime(),
+    timestamp: new Date(),
+    message: 'Backend is healthy 🚀'
+  });
+});
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
