@@ -15,7 +15,7 @@ const postRoutes = require('./routes/postRoutes')
 const uploadRoutes = require('./routes/uploadRoutes')
 
 // Middleware 
-app.use(cors());
+app.use(cors()); // app.use(cors({ origin: 'https://your-frontend.vercel.app', credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -25,7 +25,10 @@ mongoose.connect(MONGO_URI )
   .then(()=> console.log('MongoDB connected'))
   .catch(err => console.log('Mongo error', err));
 
+
 // initialize routes
+app.get('/', (req, res) => res.send('Backend is running'));
+
 app.use('/api/auth', authRoutes);   // http://localhost:5000/api/auth/
 app.use('/api/couple', coupleRoutes);   // http://localhost:5000/api/couple/COUPLE_ID
 app.use('/api/activity', activityRoutes);  // http://localhost:5000/api/activity/COUPLE_ID
