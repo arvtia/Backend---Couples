@@ -2,7 +2,7 @@
 //  Activityroutes 
 const express = require('express');
 const router = express.Router();
-const { createActivity, getActivities } = require('../controllers/activityController');
+const { createActivity, getActivities, getActivityGraph } = require('../controllers/activityController');
 const verifyToken = require('../middlewares/verifyToken');
 
 
@@ -12,5 +12,7 @@ router.post('/' , verifyToken, createActivity );
 // Get activities for a couple
 
 router.get('/:coupleId', verifyToken, getActivities)
+
+router.get('/activity-graph', verifyToken, getActivityGraph);
 
 module.exports = router;

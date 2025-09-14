@@ -4,7 +4,7 @@ const dayjs = require('dayjs');
 const Activity = require('../models/Activity');
 const Token = require('../models/Tokens');
 const verifyCoupleMembership = require('../utils/verifyCoupleMembership');
-
+const User = require('../models/User')
 
 
 // Create a couple by linking two users via partner codes
@@ -48,5 +48,44 @@ const getActivities = async ( req, res) =>{
    }
 }
 
-module.exports = { createActivity, getActivities };
+
+// activity graph 
+const getActivityGraph = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user || !user.coupleId) {
+      return res.status(404).json({ error: 'Couple not linked yet' });
+    }
+
+    const coupleId = user.coupleId;
+
+    // Aggregate counts per day
+    const activities = await Activity.aggregate([
+      { $match: { coupleId } },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+          count: { $sum: 1 }
+        }
+      },
+      { $project: { _id: 0, date: "$_id", count: 1 } }
+    ]);
+
+    // Ensure we return all days for the past year, even with 0 count
+    const today = dayjs();
+    const days = [];
+    for (let i = 0; i < 365; i++) {
+      const date = today.subtract(i, 'day').format('YYYY-MM-DD');
+      const found = activities.find(a => a.date === date);
+      days.push({ date, count: found ? found.count : 0 });
+    }
+
+    res.json(days.reverse()); // oldest → newest
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch activity graph', details: err.message });
+  }
+};
+
+
+module.exports = { createActivity, getActivities, getActivityGraph };
 

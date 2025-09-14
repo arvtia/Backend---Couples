@@ -1,21 +1,42 @@
 const dayjs = require('dayjs');
-const Token = require('../models/Tokens');
+const Activity = require('../models/Activity');
+const Post = require('../models/Post');
 const User = require('../models/User');
+const Couple = require('../models/Couple'); // assuming you have this
 
 const getStreakStats = async (req, res) => {
   try {
     const user = await User.findById(req.userId);
-    if (!user || !user.coupleId) {
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    let startDate = dayjs(user.createdAt).startOf('day');
+
+    // If user is in a couple, use couple creation date instead
+    if (user.coupleId) {
+      const couple = await Couple.findById(user.coupleId);
+      if (couple) {
+        startDate = dayjs(couple.createdAt).startOf('day');
+      }
+    } else {
       return res.status(404).json({ error: 'Couple not linked yet' });
     }
 
     const coupleId = user.coupleId;
 
-    // Get all token entries for this couple
-    const tokens = await Token.find({ coupleId }).sort({ date: -1 }).lean();
-    const uniqueDates = [...new Set(tokens.map(t => t.date))];
+    // Gather all activity dates
+    const activities = await Activity.find({ coupleId }).select('createdAt').lean();
+    const posts = await Post.find({ coupleId }).select('createdAt').lean();
 
-    // Current streak
+    const allDates = [
+      ...activities.map(a => dayjs(a.createdAt).format('YYYY-MM-DD')),
+      ...posts.map(p => dayjs(p.createdAt).format('YYYY-MM-DD'))
+    ];
+
+    const uniqueDates = [...new Set(allDates)].sort((a, b) => b.localeCompare(a));
+
+    // Calculate current streak
     let currentStreak = 0;
     let today = dayjs().format('YYYY-MM-DD');
     for (let date of uniqueDates) {
@@ -27,7 +48,7 @@ const getStreakStats = async (req, res) => {
       }
     }
 
-    // Highest streak
+    // Calculate highest streak
     let highestStreak = 0;
     let streak = 0;
     let prevDate = null;
@@ -46,9 +67,25 @@ const getStreakStats = async (req, res) => {
       prevDate = date;
     });
 
-    res.json({ currentStreak, highestStreak });
+    // Build activity graph from startDate → today
+    const activityGraph = [];
+    let cursor = startDate;
+    const todayObj = dayjs();
+    while (cursor.isBefore(todayObj) || cursor.isSame(todayObj, 'day')) {
+      const dateStr = cursor.format('YYYY-MM-DD');
+      const count = allDates.filter(d => d === dateStr).length;
+      activityGraph.push({ date: dateStr, count });
+      cursor = cursor.add(1, 'day');
+    }
+
+    res.json({
+      currentStreak,
+      highestStreak,
+      activityGraph
+    });
+
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch streak stats', details: err.message });
+    res.status(500).json({ error: 'Failed to fetch stats', details: err.message });
   }
 };
 
