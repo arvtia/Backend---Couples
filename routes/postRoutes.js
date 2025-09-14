@@ -6,7 +6,7 @@ const { verifyToken } = require('../middlewares/verifyToken');
 // const { protect } = require('../middlewares/authMiddleware');
 
 // Protect all routes
-router.use(protect);
+// router.use(protect);
 
 // Create a post
 router.post('/', verifyToken, createPost);
