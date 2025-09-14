@@ -14,8 +14,28 @@ const tokenRoutes = require('./routes/tokenRoutes')
 const postRoutes = require('./routes/postRoutes')
 const uploadRoutes = require('./routes/uploadRoutes')
 
+const allowedOrigins = [
+  'http://localhost:5173',               // Vite dev server
+  'https://your-frontend.vercel.app',    // Replace with your actual deployed frontend
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true, // if you're using cookies or auth headers
+}));
+
+
 // Middleware 
-app.use(cors()); // app.use(cors({ origin: 'https://your-frontend.vercel.app', credentials: true }));
+// app.use(cors({
+//   origin: 'http://localhost:5173/',
+// })); // app.use(cors({ origin: 'https://your-frontend.vercel.app', credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -24,7 +44,6 @@ app.use(express.urlencoded({ extended: true }));
 mongoose.connect(MONGO_URI )
   .then(()=> console.log('MongoDB connected'))
   .catch(err => console.log('Mongo error', err));
-
 
 // initialize routes
 

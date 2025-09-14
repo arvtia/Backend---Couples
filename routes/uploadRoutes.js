@@ -3,7 +3,8 @@ const router = express.Router();
 const multer = require('multer');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('../configs/cloudinary');
-const { protect } = require('../middlewares/authMiddleware');
+// const { protect } = require('../middlewares/authMiddleware');
+const { verifyToken } = require('../middlewares/verifyToken');
 
 const storage = new CloudinaryStorage({
    cloudinary,
@@ -15,7 +16,7 @@ const storage = new CloudinaryStorage({
 
 const upload = multer({ storage: storage });
 
-router.post('/', protect, upload.single('file'), (req, res) => {
+router.post('/', verifyToken, upload.single('file'), (req, res) => {
    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
    try{
       res.json({ 

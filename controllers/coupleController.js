@@ -1,7 +1,7 @@
-const Couple = require('../models/Couple');
-const User = require('../models/User');
 const crypto = require('crypto');
 const verifyCoupleMembership = require('../utils/verifyCoupleMembership');
+const Couple = require('../models/Couple');
+const User = require('../models/User');
 
 const createCouple =  async (req, res) => {
   const { userId, partnerCode } = req.body;
@@ -41,5 +41,20 @@ const getCouple = async ( req, res)=>{
    }
 }
 
+const getCoupleInfo = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user || !user.coupleId) {
+      return res.status(404).json({ error: 'Couple not linked yet' });
+    }
 
-module.exports = { createCouple, getCouple };
+    const couple = await Couple.findById(user.coupleId).populate('members', 'name email partnerCode');
+    res.json({ couple });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch couple', details: err.message });
+  }
+};
+
+
+
+module.exports = { createCouple, getCouple, getCoupleInfo };
