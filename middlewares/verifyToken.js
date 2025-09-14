@@ -1,10 +1,9 @@
-// middleware/verifyToken.js
-import jwt from 'jsonwebtoken';
-import User from '../models/User.js';
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 
-export const verifyToken = async (req, res, next) => {
+const verifyToken = async (req, res, next) => {
   const authHeader = req.headers.authorization;
-  if (!authHeader?.startsWith('Bearer ')) {
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
@@ -17,9 +16,11 @@ export const verifyToken = async (req, res, next) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    req.userId = user._id; // always set this for controllers
+    req.userId = user._id; // attach userId for controllers
     next();
   } catch (err) {
     res.status(401).json({ error: 'Invalid token' });
   }
 };
+
+module.exports = verifyToken;

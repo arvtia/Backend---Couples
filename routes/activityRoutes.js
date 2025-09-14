@@ -3,8 +3,9 @@
 const express = require('express');
 const router = express.Router();
 const { createActivity, getActivities } = require('../controllers/activityController');
-// const { protect } = require('../middlewares/authMiddleware');
-const { verifyToken } = require('../middlewares/verifyToken');
+const verifyToken = require('../middlewares/verifyToken');
+
+
 
 // Create an activity
 router.post('/' , verifyToken, createActivity );

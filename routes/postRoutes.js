@@ -2,11 +2,9 @@
 const express = require('express');
 const router = express.Router();
 const { createPost, getTimeline } = require('../controllers/postController');
-const { verifyToken } = require('../middlewares/verifyToken');
-// const { protect } = require('../middlewares/authMiddleware');
+const verifyToken = require('../middlewares/verifyToken');
 
-// Protect all routes
-// router.use(protect);
+
 
 // Create a post
 router.post('/', verifyToken, createPost);
