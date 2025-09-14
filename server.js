@@ -13,6 +13,8 @@ const activityRoutes = require('./routes/activityRoutes')
 const tokenRoutes = require('./routes/tokenRoutes')
 const postRoutes = require('./routes/postRoutes')
 const uploadRoutes = require('./routes/uploadRoutes')
+const streakRoutes = require('./routes/streakRoutes');
+
 
 const allowedOrigins = [
   'http://localhost:5173',               // Vite dev server
@@ -53,6 +55,7 @@ app.use('/api/activity', activityRoutes);  // http://localhost:5000/api/activity
 app.use('/api/tokens', tokenRoutes);  // http://localhost:5000/api/tokens/COUPLE_ID
 app.use('/api/posts', postRoutes);  // http://localhost:5000/api/posts/ // http://localhost:5000/api/posts?coupleId=COUPLE_ID&visibility=public
 app.use('/api/upload', uploadRoutes);  // http://localhost:5000/api/upload
+app.use('/api/streak', streakRoutes); // https:// localhost:5000/api/streak
 
 // Health check endpoint
 app.get('/health', (req, res) => {
