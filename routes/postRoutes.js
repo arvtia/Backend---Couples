@@ -24,5 +24,4 @@ router.post("/:postId/comment/:commentId/reply", verifyToken, addReply);
 // - Share by calling /api/posts/:postId/share (increments shareCount)
 // - reply / nested - :postId/comment/:commentId/reply to comment down to nested comments 
 
-
 module.exports = router;
