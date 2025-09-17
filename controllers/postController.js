@@ -31,10 +31,11 @@ const createPost = async (req, res) => {
     }
 
     // Handle multiple or single
-    const mediaURLs = req.files?.map((f) => f.path) || [];
+    const mediaURL = Array.isArray(req.files) ? req.files.map(f => f.path) : [];
+    
 
     try {
-      const post = new Post({ coupleId, author, content, mediaURLs, visibility });
+      const post = new Post({ coupleId, author, content, mediaURL, visibility });
       await post.save();
       res.json({ post });
     } catch (err) {
