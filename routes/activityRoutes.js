@@ -4,6 +4,7 @@ const express = require('express');
 const router = express.Router();
 const { createActivity, getActivities, getActivityGraph } = require('../controllers/activityController');
 const verifyToken = require('../middlewares/verifyToken');
+const { getStats } = require('../controllers/streakController');
 
 
 
@@ -13,6 +14,8 @@ router.post('/' , verifyToken, createActivity );
 
 router.get('/:coupleId', verifyToken, getActivities)
 
-router.get('/activity-graph', verifyToken, getActivityGraph);
+// router.get('/activity-graph', verifyToken, getActivityGraph);
+
+router.get('/getgraph', verifyToken, getStats);
 
 module.exports = router;
