@@ -18,7 +18,8 @@ const streakRoutes = require('./routes/streakRoutes');
 
 const allowedOrigins = [
   'http://localhost:5173',               // Vite dev server
-  'https://your-frontend.vercel.app',    // Replace with your actual deployed frontend
+  'x-eight-teal.vercel.app',
+        // Replace with your actual deployed frontend
 ];
 
 app.use(cors({
