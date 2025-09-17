@@ -60,4 +60,141 @@ const getTimeline = async (req, res) => {
   res.json({ posts });
 };
 
-module.exports = { createPost, getTimeline };
+// comments -> 
+async function addComment( req, res) {
+  const {postId} = req.params;
+  const {content} = req.body;
+  if(!content) return res.status(400).json({ error: "Comment cannot be empty"});
+
+  try{
+    const post = await Post.findById(postId);
+    if(!post) return res.status(404).json({error: 'Post not found', })
+      
+    if(post.visibility === 'private'){
+      const isMember = await verifyCoupleMembership(req.userId, post.coupleId);
+      if(!isMember) return res.status(403).json({ error: "Access denied"});
+    }
+
+    const comment = { commenter : req.userId, content};
+    post.comments.push(comment);
+    await post.save();
+
+    // return the newly added comment ( last in awway )
+  } catch {
+    console.error(err);
+    res.status(500).json({ error:"Failed to add comment", details: err.message});
+  }
+}
+
+//  toggle like and (like / unlike)
+async function toggleLove ( req, res) {
+  const { postId} = req.params;
+  
+  try{
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json({ error: " Post not found"});
+
+    const idx = post.loves.findIndex(uid => uid.equals(req.userId));
+    if(idx === -1){
+      // not loved yet -> add
+      post.loves.push(req.userId);
+    } else {
+      // arleady loved -> removed
+      post.loves.splice(idx, 1);
+    }
+
+    await post.save();
+    res.json({ loves: post.loves.length, hasLoved: idx === -1});
+  } catch (err) {
+    console.error(err) 
+    res.status(500).json({error:"Failed to toggle love", details: err.message});
+    
+  }
+}
+
+// Increment share count
+async function sharePost( req, res) {
+  const { postId} = req.params;
+
+  try{
+    const post = await Post.findByIdAndUpdate(
+      postId,
+      { $inc: {shareCount}},
+      {new: true}
+    )
+    if(!post) return res.status(400).json({error:"Post not found"});
+    res.json({shareCount: post.shareCount});
+  } catch (err){
+    console.error(err);
+    res.status(500).json({error: "Failed to share post", details: err.message})
+  }
+}
+
+// nested comments
+
+// Add a reply to a specific comment
+async function addReply(req, res) {
+  const { postId, commentId } = req.params;
+  const { content } = req.body;
+  if (!content) {
+    return res.status(400).json({ error: "Reply cannot be empty" });
+  }
+
+  try {
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json({ error: "Post not found" });
+
+    // Private-post check
+    if (post.visibility === "private") {
+      const isMember = await verifyCoupleMembership(req.userId, post.coupleId);
+      if (!isMember) return res.status(403).json({ error: "Access denied" });
+    }
+
+    // Find the parent comment in the tree (recursive helper)
+    function findAndPush(comments) {
+      for (let c of comments) {
+        if (c._id.equals(commentId)) {
+          c.replies.push({ commenter: req.userId, content });
+          return true;
+        }
+        if (c.replies.length && findAndPush(c.replies)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    const found = findAndPush(post.comments);
+    if (!found) {
+      return res.status(404).json({ error: "Comment to reply not found" });
+    }
+
+    await post.save();
+    // Return the newly added reply (last in that replies array)
+    // We need to traverse again to grab it:
+    let newReply;
+    function findReply(comments) {
+      for (let c of comments) {
+        if (c._id.equals(commentId)) {
+          newReply = c.replies[c.replies.length - 1];
+          return true;
+        }
+        if (c.replies.length && findReply(c.replies)) {
+          return true;
+        }
+      }
+      return false;
+    }
+    findReply(post.comments);
+
+    res.json({ reply: newReply });
+  } catch (err) {
+    console.error("addReply error:", err);
+    res.status(500).json({ error: "Failed to add reply", details: err.message });
+  }
+}
+
+
+
+
+module.exports = { createPost, getTimeline, addComment, sharePost, toggleLove, addReply };
