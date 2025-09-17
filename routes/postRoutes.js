@@ -7,7 +7,7 @@ const verifyToken = require('../middlewares/verifyToken');
 
 
 // Create a post
-router.post('/', verifyToken, createPost);
+router.post('/create', verifyToken, createPost);
 // Get timeline for a couple, optionally filtered by visibility
 router.get('/:coupleId/:visibility',  getTimeline);
 

@@ -1,4 +1,3 @@
-
 const Post = require('../models/Post');
 const multer = require('multer');
 const cloudinary = require('../configs/cloudinary');
@@ -10,11 +9,12 @@ const storage = new CloudinaryStorage({
   cloudinary,
   params: {
     folder: 'couples-app',
-    allowed_formats: ['jpg', 'png', 'jpeg', 'gif', 'mp4']
-  }
+    allowed_formats: ['jpg', 'png', 'jpeg', 'gif', 'mp4'],
+  },
 });
 
-const upload = multer({ storage }).single('media');
+// Accept up to 10 files under the field name "media"
+const upload = multer({ storage }).array('media', 10);
 
 const createPost = async (req, res) => {
   upload(req, res, async function (err) {
@@ -22,17 +22,19 @@ const createPost = async (req, res) => {
       return res.status(500).json({ error: 'Upload failed', details: err.message });
     }
 
-   const isMember = await verifyCoupleMembership(req.userId, coupleId);
-   if (!isMember) return res.status(403).json({ error: 'Access denied' });
-   if (!isMember) {
-   console.warn(`Unauthorized access attempt by user ${req.userId} to couple ${coupleId}`);
-   return res.status(403).json({ error: 'Access denied' });
-   }
     const { coupleId, author, content, visibility } = req.body;
-    const mediaURL = req.file?.path || null;
+
+    const isMember = await verifyCoupleMembership(req.userId, coupleId);
+    if (!isMember) {
+      console.warn(`Unauthorized access attempt by user ${req.userId} to couple ${coupleId}`);
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    // Handle multiple or single
+    const mediaURLs = req.files?.map((f) => f.path) || [];
 
     try {
-      const post = new Post({ coupleId, author, content, mediaURL, visibility });
+      const post = new Post({ coupleId, author, content, mediaURLs, visibility });
       await post.save();
       res.json({ post });
     } catch (err) {
@@ -40,8 +42,6 @@ const createPost = async (req, res) => {
     }
   });
 };
-
-
 
 const getTimeline = async (req, res) => {
   const { coupleId, visibility } = req.params;
@@ -58,8 +58,5 @@ const getTimeline = async (req, res) => {
 
   res.json({ posts });
 };
-
-
-
 
 module.exports = { createPost, getTimeline };
