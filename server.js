@@ -18,42 +18,19 @@ const MONGO_URI = process.env.MONGO_URI;
 //    - Allows non-browser clients (no Origin header)
 //    - Enables credentials (cookies, auth headers)
 // ─────────────────────────────────────────────────────────────────────────────
-const rawOrigins = process.env.ALLOWED_ORIGINS || "";
-const allowedOrigins = rawOrigins
-  .split(",")
-  .map((o) => o.trim())
-  .filter((o) => o.length > 0);
+const allowedOrigins = [process.env.ALLOWED_ORIGINS];
 
-const corsOptions = {
-  origin: (incomingOrigin, callback) => {
-    // Allow tools like curl, Postman, or server-to-server
-    if (!incomingOrigin) {
-      return callback(null, true);
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS policy: origin not allowed"));
     }
-
-    let originToCheck;
-    try {
-      originToCheck = new URL(incomingOrigin).origin;
-    } catch {
-      return callback(
-        new Error(`CORS error: invalid origin "${incomingOrigin}"`),
-        false
-      );
-    }
-
-    if (allowedOrigins.includes(originToCheck)) {
-      return callback(null, true);
-    }
-
-    callback(
-      new Error(`CORS policy: origin "${originToCheck}" not allowed`),
-      false
-    );
   },
   credentials: true,
-};
+}));
 
-app.use(cors(corsOptions));
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 2. Built-in Middleware
