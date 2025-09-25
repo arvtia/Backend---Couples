@@ -5,6 +5,8 @@ const User = require('../models/User');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS;
+const { Resend } = require('resend');
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 
 exports.signup = async (req, res) => {
@@ -52,78 +54,123 @@ exports.Login = async (req, res)=> {
 
 // Send password reset link
 exports.sendResetLink = async (req, res) => {
-   const { email } = req.body;
-   if (!email) return res.status(400).json({ message: "Email is required" });
-   try {
-      const user = await User.findOne({ email });
-      if (!user) return res.status(400).json({ message: "User not found" });
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ message: "Email is required" });
 
-      const token = crypto.randomBytes(32).toString('hex');
-      user.resetPasswordToken = token;
-      user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
-      await user.save();
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ message: "User not found" });
 
-      // Setup nodemailer
-      const transporter = nodemailer.createTransport({
-         service: 'gmail',
-         auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS
-         }
-      });
+    const token = crypto.randomBytes(32).toString('hex');
+    user.resetPasswordToken = token;
+    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+    await user.save();
 
-      const resetUrl = `${ALLOWED_ORIGINS}/reset-password/${token}`;
-      const mailOptions = {
-         to: user.email,
-         subject: 'Password Reset',
-         text: `Click this link to reset your password: ${resetUrl}`
-      };
+    const resetUrl = `${process.env.ALLOWED_ORIGINS}/reset-password/${token}`;
 
-      await transporter.sendMail(mailOptions);
+    const htmlContent = `
+      <div style="background-color: #ffe6f0; padding: 40px 20px; font-family: sans-serif; text-align: center;">
+        <div style="max-width: 500px; margin: 0 auto; background-color: #fff0f5; padding: 30px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+          <h1 style="font-size: 30px; color: #d6336c; margin-bottom: 24px;">💖 Couples Connect</h1>
+          <div style="text-align: left; font-size: 16px; color: #333; line-height: 1.6;">
+            <p>Hi there,</p>
+            <p>We received a request to reset your password. Click the button below to set a new one. This link will expire in 1 hour.</p>
+          </div>
+          <div style="margin: 32px 0;">
+            <a href="${resetUrl}" style="
+              display: inline-block;
+              padding: 12px 28px;
+              background-color: #fff;
+              color: #d6336c;
+              border: 2px solid #f3c6d4;
+              border-radius: 8px;
+              text-decoration: none;
+              font-weight: bold;
+              font-size: 16px;
+              box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+              transition: background-color 0.3s ease;
+            ">
+              Reset Password
+            </a>
+          </div>
+          <p style="font-size: 14px; color: #999; margin-top: 40px;">Couples Connect 💞</p>
+        </div>
+      </div>
+    `;
 
-      res.json({ message: "Reset link sent to email" });
-   } catch (err) {
-      console.error(err);
-      res.status(500).json({ message: "Server error" });
-   }
+    await resend.emails.send({
+      from: 'onboarding@resend.dev',
+      to: user.email,
+      subject: 'Reset Your Password',
+      html: htmlContent
+    });
+
+    res.json({ message: "Reset link sent to email" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
 };
 
-// Reset password and send confirmation
+
+
 exports.resetPassword = async (req, res) => {
-   const { token, password } = req.body;
-   if (!token || !password) return res.status(400).json({ message: "Token and new password required" });
-   try {
-      const user = await User.findOne({
-         resetPasswordToken: token,
-         resetPasswordExpires: { $gt: Date.now() }
-      });
-      if (!user) return res.status(400).json({ message: "Invalid or expired token" });
+  const { token, password } = req.body;
+  if (!token || !password) return res.status(400).json({ message: "Token and new password required" });
 
-      user.password = await bcrypt.hash(password, 10);
-      user.resetPasswordToken = undefined;
-      user.resetPasswordExpires = undefined;
-      await user.save();
+  try {
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() }
+    });
 
-      // Send confirmation email
-      const transporter = nodemailer.createTransport({
-         service: 'gmail',
-         auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS
-         }
-      });
+    if (!user) return res.status(400).json({ message: "Invalid or expired token" });
 
-      const mailOptions = {
-         to: user.email,
-         subject: 'Password Updated',
-         text: 'Your password has been successfully updated.'
-      };
+    user.password = await bcrypt.hash(password, 10);
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
 
-      await transporter.sendMail(mailOptions);
+    const htmlContent = `
+      <div style="background-color: #ffe6f0; padding: 40px 20px; font-family: sans-serif; text-align: center;">
+        <div style="max-width: 500px; margin: 0 auto; background-color: #fff0f5; padding: 30px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+          <h1 style="font-size: 30px; color: #d6336c; margin-bottom: 24px;">💖 Couples Connect</h1>
+          <div style="text-align: left; font-size: 16px; color: #333; line-height: 1.6;">
+            <p>Hi there,</p>
+            <p>Your password has been successfully updated. If this wasn’t you, please contact support immediately.</p>
+          </div>
+          <div style="margin: 32px 0;">
+            <a href="${process.env.ALLOWED_ORIGINS}" style="
+              display: inline-block;
+              padding: 12px 28px;
+              background-color: #fff;
+              color: #d6336c;
+              border: 2px solid #f3c6d4;
+              border-radius: 8px;
+              text-decoration: none;
+              font-weight: bold;
+              font-size: 16px;
+              box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+              transition: background-color 0.3s ease;
+            ">
+              Return to App
+            </a>
+          </div>
+          <p style="font-size: 14px; color: #999; margin-top: 40px;">Couples Connect 💞</p>
+        </div>
+      </div>
+    `;
 
-      res.json({ message: "Password updated and confirmation sent" });
-   } catch (err) {
-      console.error(err);
-      res.status(500).json({ message: "Server error" });
-   }
+    await resend.emails.send({
+      from: 'onboarding@resend.dev',
+      to: user.email,
+      subject: 'Your Password Has Been Updated',
+      html: htmlContent
+    });
+
+    res.json({ message: "Password updated and confirmation sent" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
 };
