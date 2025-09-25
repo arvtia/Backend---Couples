@@ -52,7 +52,7 @@ exports.Login = async (req, res)=> {
 
 
 
-// Send password reset link
+
 exports.sendResetLink = async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ message: "Email is required" });
@@ -98,8 +98,19 @@ exports.sendResetLink = async (req, res) => {
       </div>
     `;
 
-    await resend.emails.send({
-      from: 'onboarding@resend.dev',
+    // Create transporter
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER, // your Gmail address
+        pass: process.env.EMAIL_PASS  // app password or Gmail password
+      },
+      connectionTimeout: 10000 // optional: increase timeout
+    });
+
+    // Send email
+    await transporter.sendMail({
+      from: `"Couples Connect 💞" <${process.env.EMAIL_USER}>`,
       to: user.email,
       subject: 'Reset Your Password',
       html: htmlContent
@@ -111,7 +122,6 @@ exports.sendResetLink = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
 
 
 exports.resetPassword = async (req, res) => {
@@ -161,8 +171,17 @@ exports.resetPassword = async (req, res) => {
       </div>
     `;
 
-    await resend.emails.send({
-      from: 'onboarding@resend.dev',
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      },
+      connectionTimeout: 10000
+    });
+
+    await transporter.sendMail({
+      from: `"Couples Connect 💞" <${process.env.EMAIL_USER}>`,
       to: user.email,
       subject: 'Your Password Has Been Updated',
       html: htmlContent
