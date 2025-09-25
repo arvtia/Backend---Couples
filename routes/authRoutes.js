@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { signup, Login, sendResetLink, resetPassword } = require('../controllers/authController');
+const { signup, Login, sendResetLink, resetPassword, sendTestEmail } = require('../controllers/authController');
 const { getUserProfile } = require('../controllers/getUserProfile');
 const verifyToken = require('../middlewares/verifyToken');
 
@@ -12,5 +12,6 @@ router.get('/me', verifyToken,  getUserProfile)
 // Password reset routes 
 router.post('/resetlink', sendResetLink);
 router.post('/reset-password', resetPassword);
+router.post('/test-email', sendTestEmail)
 
 module.exports = router;

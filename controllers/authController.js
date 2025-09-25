@@ -193,3 +193,32 @@ exports.resetPassword = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
+
+exports.sendTestEmail = async (req, res) => {
+  const { to } = req.body;
+  if (!to) return res.status(400).json({ message: "Recipient email is required" });
+
+  try {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      }
+    });
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to,
+      subject: 'Test Email',
+      text: 'Testing work.'
+    });
+
+    res.json({ message: 'Test email sent successfully' });
+  } catch (err) {
+    console.error('Email send error:', err);
+    res.status(500).json({ message: 'Failed to send test email' });
+  }
+};
