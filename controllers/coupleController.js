@@ -11,6 +11,16 @@ const createCouple =  async (req, res) => {
 
     if (!user || !partner) return res.status(404).json({ error: 'User or partner not found' });
 
+    // preventing couple with themselves
+    if ( user.partnerCode === partnerCode){
+      return res.status(400).json({err:"you can't form a couple with yoursefl"})
+    }
+
+    // prevent duplicate partner with other partner
+    if (user.coupleId || partner.coupleId) {
+      return res.status(400).json({ error: "One or both users are already in a couple" });
+    }
+
     const couple = new Couple({ members: [user._id, partner._id] });
     await couple.save();
 
