@@ -71,7 +71,7 @@ const getActivityGraph = async (req, res) => {
       { $project: { _id: 0, date: "$_id", count: 1 } }
     ]);
 
-    // Ensure we return all days for the past year, even with 0 count
+    // Ensure , it return all days for the past year, even with 0 count
     const today = dayjs();
     const days = [];
     for (let i = 0; i < 365; i++) {
